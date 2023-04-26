@@ -2,7 +2,7 @@ import pandas as pd
 import os
 
 tabela_ids = pd.read_excel('./Planilha_Teste_1.xlsx')
-# o grande gpt falou q divia fazer assim para os filtros
+# o grande gpt falou q divia fazer assim para os filtross
 filtro_path = "./Filtro.xlsx"
 filtro_files = os.listdir(filtro_path)
 
