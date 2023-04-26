@@ -1,17 +1,20 @@
 import pandas as pd
+import os
 
-tabela_ids = pd.read_excel('./testes.xlsx')
+tabela_ids = pd.read_excel('./Planilha_Teste_1.xlsx')
+# o grande gpt falou q divia fazer assim para os filtros
+filtro_path = "./Filtro.xlsx"
+filtro_files = os.listdir(filtro_path)
 
-codes = tabela_ids['ids'].tolist()
+codes = tabela_ids['UID,C,7'].tolist()
 
 # remover duplicatas
 codes = set(codes)
 codes = list(codes)
 
-
 # para cada codigo
-for code in codes:
-    pass
+for codes in filtro_files:
+    print (codes)
     # pra cada arquivo na pasta consulta
     # fazer uma lista de arquivos na pasta consulta, acho que da pra fazer com
     # a biblioteca 'os', pede pro gpt
