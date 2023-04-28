@@ -13,45 +13,46 @@ TESTA COM PLANILHA PEQUENA
 '''
 
 
-table_ids_path = "./Planilha_Teste_1.xlsx"
-tabela_ids = pd.read_excel("./Planilha_Teste_1.xlsx")
+table_ids_path = "./Planilha_Teste_2.xlsx"
+tabela_ids = pd.read_excel(table_ids_path)
 
 # o grande gpt falou q devia fazer assim para os filtros
 filtro_path = "./Filtro.xlsx"
-
 tabela_filtro = pd.read_excel(filtro_path)
 
 
 filtro = "CODES"
-tabela_ids_coluna = "UID,C,7"
+tabela_ids_coluna = "BPI_UID,C,7"
 
 #codes = tabela_ids['UID,C,7'].tolist()
 
-# remover duplicatas
-#codes = set(codes)
-#codes = list(codes)
+# pega e faz o seguinte:
+# a função zip junta o CODE e nome em tupla (code, nome) <- fica juntinho
 
-# para cada codigo
+# e esse id: nome for id, nome bla bla 
+# faz um loop que cria chave e id para um dicionario do python, ent {code: name} <- pesquisa de dicionario se precisar
+
+id_nome_dict = {code: nome for code, nome in zip(tabela_filtro[filtro], tabela_filtro['UBS'])}
 lista_de_codes = list(set(tabela_filtro[filtro].tolist()))
+
+
+# PRECISA FAZER OS NUMERO SAIR DA NOTAÇÂO DIENTIFICA
+# MANUALMENTE É: SELECIOAN TODAS AS CELULAS > DIREITO > FORMATAÇÂO > CUSTOM 0
+
 
 # para cada item na lsita de filtros
 for filter_code in lista_de_codes:
-    # se o codigo estiver na coluna id da tabela
+    
+    print(f'Fazendo para {filter_code}: {id_nome_dict[filter_code]}')
     if filter_code in tabela_ids[tabela_ids_coluna].tolist():
+        conteudo_code = tabela_ids.loc[tabela_ids[tabela_ids_coluna] == filter_code]
+        
+        planilha_resultado = pd.DataFrame(columns=tabela_ids.columns)
 
-        # o enumerate é so um for que tambem tem o id, entao nesse caso, 'linha' é a linha
-        # que o codigo se encontra dentro da coluna (code)
-        for linha, code in enumerate(tabela_ids[tabela_ids_coluna].tolist()):
-            if code == filter_code:
-                print(f'codigo: {filter_code} da planilha filtros aparece na linha {linha} em {table_ids_path}')
+        planilha_resultado = planilha_resultado._append(conteudo_code, ignore_index=True)
+
+        planilha_resultado.to_excel(f'teste/{filter_code}_{id_nome_dict[filter_code]}.xlsx', index=False, float_format="%.0f")
         
     else:
-        print("Os valores da linha", "são diferentes nas duas planilhas.")
-    # pra cada arquivo na pasta consulta
-    # fazer uma lista de arquivos na pasta consulta, acho que da pra fazer com
-    # a biblioteca 'os', pede pro gpt
-
-    # for arquivo in consulta: 
-        # ver se o 'code' ta no arquivo usando o mesmo codigo que ta ali em cima da linha 3 a 9 
-        # pega todos as ocorrencias do id 
-        # e faz a magica
+        print(f"{filter_code} nao encontrado na tabela")
+  
