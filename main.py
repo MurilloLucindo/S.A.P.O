@@ -12,8 +12,7 @@ TESTA COM PLANILHA PEQUENA
 
 '''
 
-
-table_ids_path = "./Planilha_Teste_2.xlsx"
+table_ids_path = "./Planilha_Teste_1.xlsx"
 tabela_ids = pd.read_excel(table_ids_path)
 
 # o grande gpt falou q devia fazer assim para os filtros
@@ -22,13 +21,12 @@ tabela_filtro = pd.read_excel(filtro_path)
 
 
 filtro = "CODES"
-tabela_ids_coluna = "BPI_UID,C,7"
+tabela_ids_coluna = "UID,C,7"
 
 #codes = tabela_ids['UID,C,7'].tolist()
 
 # pega e faz o seguinte:
 # a função zip junta o CODE e nome em tupla (code, nome) <- fica juntinho
-
 # e esse id: nome for id, nome bla bla 
 # faz um loop que cria chave e id para um dicionario do python, ent {code: name} <- pesquisa de dicionario se precisar
 
@@ -39,20 +37,35 @@ lista_de_codes = list(set(tabela_filtro[filtro].tolist()))
 # PRECISA FAZER OS NUMERO SAIR DA NOTAÇÂO DIENTIFICA
 # MANUALMENTE É: SELECIOAN TODAS AS CELULAS > DIREITO > FORMATAÇÂO > CUSTOM 0
 
+table_codes = list(set(tabela_ids[tabela_ids_coluna].tolist()))
+
+# cria o resto fora pra poder salvar fora do loop
+planilha_resto = pd.DataFrame(columns=tabela_ids.columns)
 
 # para cada item na lsita de filtros
-for filter_code in lista_de_codes:
+for table_code in table_codes:
     
-    print(f'Fazendo para {filter_code}: {id_nome_dict[filter_code]}')
-    if filter_code in tabela_ids[tabela_ids_coluna].tolist():
-        conteudo_code = tabela_ids.loc[tabela_ids[tabela_ids_coluna] == filter_code]
+    if table_code in lista_de_codes:
+        print(f'{table_code} está nos filtros: {id_nome_dict[table_code]}')
+        conteudo_code = tabela_ids.loc[tabela_ids[tabela_ids_coluna] == table_code]
         
         planilha_resultado = pd.DataFrame(columns=tabela_ids.columns)
 
         planilha_resultado = planilha_resultado._append(conteudo_code, ignore_index=True)
 
-        planilha_resultado.to_excel(f'teste/{filter_code}_{id_nome_dict[filter_code]}.xlsx', index=False, float_format="%.0f")
-        
+        planilha_resultado.to_excel(f'teste/{table_code}_{id_nome_dict[table_code]}.xlsx', index=False, float_format="%.0f")
+
+        exit()
+
     else:
-        print(f"{filter_code} nao encontrado na tabela")
+        print(f'{table_code} nao ta nos filtro')
+
+        conteudo_code = tabela_ids.loc[tabela_ids[tabela_ids_coluna] == table_code]
+
+        planilha_resto = planilha_resto._append(conteudo_code, ignore_index=True)
+
+
+# salva do loop
+planilha_resto.to_excel(f'teste/Restantes.xlsx', index=False, float_format="%.0f")
+
   
