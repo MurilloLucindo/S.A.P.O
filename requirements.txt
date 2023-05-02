@@ -2,3 +2,4 @@ pandas
 openpyxl
 os
 xlsxwriter
+ttkbootstrap

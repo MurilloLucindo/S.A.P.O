@@ -56,11 +56,13 @@ class XLSXCreator:
             finally:
                 self.semaphore.release()
             
+    def set_tabela_ids_path(self, path: str):
+        self.tabela_ids_path = path
 
+    def set_tabela_filtro_path(self, path: str):
+        self.tabela_filtro_path = path
             
     def start(self):
-        
-
         for table_code in self.table_codes:
             t = threading.Thread(target=self.__filter_and_create, args=(table_code,))
             self.threads.append(t)
