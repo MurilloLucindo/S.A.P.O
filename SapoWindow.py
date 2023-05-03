@@ -44,7 +44,7 @@ class SapoWindow(ttk.Frame):
         self.create_inputs()
 
         # xlsx stuff
-        self.sapo = XLSXCreator(window=self) #XLSXCreator(tabela_ids_path=None,tabela_ids_col="BPI_UID,C,7", tabela_filtro_path=None, tabela_filtro_col="CODES")
+        self.sapo = XLSXCreator(ttkobject=self) #XLSXCreator(tabela_ids_path=None,tabela_ids_col="BPI_UID,C,7", tabela_filtro_path=None, tabela_filtro_col="CODES")
 
     def create_logs(self):
 
