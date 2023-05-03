@@ -1,8 +1,15 @@
 from XLSXCreator import XLSXCreator
+from SapoWindow import SapoWindow
+import ttkbootstrap as ttk
 
 # sistema absolutamente podereoso de organização
-sapo = XLSXCreator(tabela_ids_path="./Planilha_Teste_2.xlsx", tabela_ids_col="BPI_UID,C,7", tabela_filtro_path="./Filtro.xlsx", tabela_filtro_col="CODES")
 
-sapo.load()
+app = ttk.Window(
+    title="SAPO",
+    themename="yeti",
+    #https://ttkbootstrap.readthedocs.io/en/latest/themes/
+    minsize=(1000,300)
+)
+SapoWindow(app)
+app.mainloop()
 
-sapo.start()
