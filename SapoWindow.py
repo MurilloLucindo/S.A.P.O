@@ -191,7 +191,6 @@ class SapoWindow(ttk.Frame):
             # check after 100 ms
             self.logs_textbox.after(100, keep_alive_start)
             
-
     def log_print(self, words: str):
         self.logs_textbox.configure(state=NORMAL)
 
@@ -201,12 +200,11 @@ class SapoWindow(ttk.Frame):
         self.logs_textbox.configure(state=DISABLED)
 
 if __name__ == "__main__":
-    sapo = XLSXCreator()
     app = ttk.Window(
         title="SAPO",
         themename="yeti",
         #https://ttkbootstrap.readthedocs.io/en/latest/themes/
         minsize=(1000,300)
     )
-    SapoWindow(app, sapo)
+    SapoWindow(app)
     app.mainloop()

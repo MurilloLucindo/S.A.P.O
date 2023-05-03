@@ -3,3 +3,4 @@ openpyxl
 os
 xlsxwriter
 ttkbootstrap
+pillow

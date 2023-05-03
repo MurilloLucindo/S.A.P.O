@@ -4,69 +4,80 @@ import threading
 
 class XLSXCreator:
 
-    def __init__(self, tabela_ids_path = None, tabela_ids_col = None, tabela_filtro_path = None, tabela_filtro_col = None, output_folder = None, window = None):
-        self.tabela_ids_path = tabela_ids_path #"./Planilha_planilhas_2.xlsx"
+    def __init__(self, tabela_ids_path=None, tabela_ids_col=None, tabela_filtro_path=None, tabela_filtro_col=None, output_folder='./Planilhas', ttkobject=None):
+        # CONFIGURACAO DA TABELA
+        self.tabela_ids_path = tabela_ids_path
         self.tabela_ids_col = tabela_ids_col
-        self.tabela_ids = None
 
-        self.tabela_filtro_path = tabela_filtro_path #"./Filtro.xlsx"
+        # CONFIGURACAO DOS FILTROS
+        self.tabela_filtro_path = tabela_filtro_path
         self.tabela_filtro_col = tabela_filtro_col
-        self.tabela_filtro = None
 
-        self.id_nome_dict = None
-        self.lista_de_codes = None
-        self.table_codes = None
+        # Pasta do output
+        self.output_folder = output_folder
 
-        self.planilha_resto = None
+        # Se tiver a janela ele printa na janela
+        self.ttkobject = ttkobject
 
-        self.output_folder = output_folder if output_folder else './Planilhas'
-        
-        self.threads = []
-
+        # Pra verificar se ja carregou os dados
         self.loaded = False
 
+        # Threads
         self.semaphore = threading.Semaphore(1)
-        #
-        self.window = window if window else None
+        self.threads = []
+
+    def is_ready(self):
+        return all([
+            self.tabela_ids_path is not None,
+            self.tabela_ids_col is not None,
+            self.tabela_filtro_path is not None,
+            self.tabela_filtro_col is not None
+        ])
 
     def load(self):
+
+        # carrega tabela 
         self.tabela_ids = pd.read_excel(self.tabela_ids_path)
+
+        # carrega filtros
         self.tabela_filtro = pd.read_excel(self.tabela_filtro_path)
 
+        # pega nomes da tabela filtro
+        self.id_nome_dict = dict(zip(self.tabela_filtro[self.tabela_filtro_col], self.tabela_filtro['UBS']))
+
+        # pega os codigos da tabela filtros
+        self.lista_de_codes = list(set(self.tabela_filtro[self.tabela_filtro_col]))
+
+        # pega os codigos da tabela
+        self.table_codes = list(set(self.tabela_ids[self.tabela_ids_col]))
+
+        # cria planilha resto
         self.planilha_resto = pd.DataFrame(columns=self.tabela_ids.columns)
 
-        self.id_nome_dict = {code: nome for code, nome in zip(self.tabela_filtro[self.tabela_filtro_col], self.tabela_filtro['UBS'])}
-        self.lista_de_codes = list(set(self.tabela_filtro[self.tabela_filtro_col].tolist()))
-
-        self.table_codes = list(set(self.tabela_ids[self.tabela_ids_col].tolist()))
-
-        #
-
+        # carregado
         self.loaded = True
+        
+        return True
 
     def __filter_and_create(self, table_code):
         if table_code in self.lista_de_codes:
-            if self.window: self.window.log_print(f'Criando planilha para {table_code}: {self.id_nome_dict[table_code]}...') 
-
+            if self.ttkobject:
+                self.ttkobject.log_print(f'Criando planilha para {table_code}: {self.id_nome_dict[table_code]}...')
             conteudo_code = self.tabela_ids.loc[self.tabela_ids[self.tabela_ids_col] == table_code]
-            
-            planilha_resultado = pd.DataFrame(columns=self.tabela_ids.columns)
-
-            planilha_resultado = planilha_resultado._append(conteudo_code, ignore_index=True)
-
-            planilha_resultado.to_excel(f'{self.output_folder}/{table_code}_{self.id_nome_dict[table_code]}.xlsx', index=False, float_format="%.0f")
-
+            planilha_resultado = conteudo_code.copy()
+            filename = f'{table_code}_{self.id_nome_dict[table_code]}.xlsx'
+            path = os.path.join(self.output_folder, filename)
+            planilha_resultado.to_excel(path, index=False, float_format="%.0f")
         else:
-            if self.window: self.window.log_print(f'{table_code}, {self.id_nome_dict[table_code]} não está nos filtros. Adicionando aos restantes... ') 
+            if self.ttkobject:
+                self.ttkobject.log_print(f'{table_code}, {self.id_nome_dict[table_code]} não está nos filtros. Adicionando aos restantes... ')
+            conteudo_code = self.tabela_ids.loc[self.tabela_ids[self.tabela_ids_col] == table_code]
             self.semaphore.acquire()
             try:
-                # do some work that modifies the shared list
-                conteudo_code = self.tabela_ids.loc[self.tabela_ids[self.tabela_ids_col] == table_code]
-                self.planilha_resto = self.planilha_resto._append(conteudo_code, ignore_index=True)
-
+                self.planilha_resto = self.planilha_resto.append(conteudo_code, ignore_index=True)
             finally:
                 self.semaphore.release()
-            
+
     def set_tabela_ids_path(self, path: str):
         self.tabela_ids_path = path
 
@@ -78,24 +89,29 @@ class XLSXCreator:
 
     def set_tabela_filtro_col(self, col: str):
         self.tabela_filtro_col = col
-            
+
     def start(self):
-        if not self.loaded:
-            self.load()
+        if self.is_ready():
+            # Checa se esta carregado (as planilhas)
+            if not self.loaded:
+                self.load()
 
-        if not os.path.exists(self.output_folder):
-            os.mkdir(self.output_folder)
+            # Checa se a pasta de output existe
+            if not os.path.exists(self.output_folder):
+                os.mkdir(self.output_folder)
+            
+            for table_code in self.table_codes:
+                t = threading.Thread(target=self.__filter_and_create, args=(table_code,))
+                self.threads.append(t)
 
-        for table_code in self.table_codes:
-            t = threading.Thread(target=self.__filter_and_create, args=(table_code,))
-            self.threads.append(t)
+            for t in self.threads:
+                t.start()
 
-        for t in self.threads:
-            t.start()
-        
-        for t in self.threads:
-            t.join()
+            for t in self.threads:
+                t.join()
 
-        #salva planilha resto    
-        self.planilha_resto.to_excel(f'{self.output_folder}/Restantes.xlsx', index=False, float_format="%.0f")
-        
+            restantes_filename = 'Restantes.xlsx'
+            restantes_path = os.path.join(self.output_folder, restantes_filename)
+            self.planilha_resto.to_excel(restantes_path, index=False, float_format="%.0f")
+
+            return True
