@@ -8,46 +8,50 @@ import threading
 from XLSXCreator import XLSXCreator
 
 class SapoWindow(ttk.Frame):
-    
     def __init__(self, master):
-        # ttk stuff
         super().__init__(master, padding=10)
+        self.pack(fill=BOTH, expand=YES)
+
+        # ttk variables
         self.filter_filename = ttk.StringVar()
         self.column_filter_entry = None
-
         self.table_filename = ttk.StringVar()
         self.column_table_entry = None
 
-        self.pack(fill=BOTH, expand=YES)
-        
-        forg = Image.open('assets/forg.png')
-        self.forg = ImageTk.PhotoImage(forg)
+        # images
+        self.forg = ImageTk.PhotoImage(Image.open('assets/forg.png'))
 
+        # styles
         self.style = ttk.Style()
+        self.style.configure('success.TButton', font=('Helvetica', 35))
 
-        self.style.configure('my.TFrame', background='red')
-
+        # upper container
         self.upper_container = ttk.Frame(master=self, padding=2)
         self.upper_container.pack(fill=X, expand=YES)
 
+        # upper container left
         self.upper_container_left = ttk.Frame(master=self.upper_container, padding=2)
         self.upper_container_left.pack(fill=BOTH, expand=YES, side=LEFT)
 
-        self.upper_container_right = ttk.Frame(master=self.upper_container, padding=2 )
+        # upper container right
+        self.upper_container_right = ttk.Frame(master=self.upper_container, padding=2)
         self.upper_container_right.pack(fill=BOTH, expand=YES, side=RIGHT)
-        
-        
 
-        self.logs_textbox = None
+        # logs textbox
         self.create_logs()
+
+        # sidebar
         self.create_sidebar()
+
+        # inputs
         self.create_inputs()
 
         # xlsx stuff
-        self.sapo = XLSXCreator(window=self) #XLSXCreator(tabela_ids_path=None,tabela_ids_col="BPI_UID,C,7", tabela_filtro_path=None, tabela_filtro_col="CODES")
+        self.sapo = XLSXCreator(ttkobject=self)
 
     def create_logs(self):
-
+        
+        # cria a janela de texto de logs
         self.logs_textbox = ScrolledText(
             master=self.upper_container_left,
             highlightcolor=self.style.colors.primary,
@@ -56,94 +60,158 @@ class SapoWindow(ttk.Frame):
         )
         self.logs_textbox.pack(fill=X, expand=YES, side=TOP)
 
-
         default_txt = "Bem vindo ao SAPO"
+
+        # bota a mensgame la
         self.logs_textbox.insert(END, default_txt)
 
+        # TEM QUE FICA R DISABLED PRA O USUARIO N MUDAR,
+        # Se quiser printar algo usa a funcao log_print
         self.logs_textbox.configure(state=DISABLED)
        
     def create_sidebar(self):
+        # Create label with frog image
+        forg_lbl = ttk.Label(
+            master=self.upper_container_right,
+            image=self.forg
+        )
+        forg_lbl.pack(
+            side=TOP,
+            fill=BOTH,
+            expand=YES,
+            pady=10,
+            padx=(5, 0)
+        )
 
-        forg_lbl = ttk.Label(master=self.upper_container_right, image=self.forg)
-        forg_lbl.pack(side=TOP, fill=BOTH, expand=YES, pady=10, padx=(35,0))
+        # Create start button
+        start_button = ttk.Button(
+            master=self.upper_container_right,
+            text="Iniciar",
+            command=self.start,
+            style='success.TButton'
+        )
+        start_button.pack(
+            side=BOTTOM,
+            fill=Y,
+            padx=(10, 0)
+        )
 
-    
-        self.style.configure('success.TButton', font=('Helvetica', 35))
-        start_button = ttk.Button(master=self.upper_container_right, 
-                                text="Iniciar",
-                                command=self.start,
-                                #bootstyle=SUCCESS,
-                                style='success.TButton'
-                                )
-        start_button.pack(side=BOTTOM, fill=Y, padx=(10,0))
+        # Create separator to separate frog credits
+        sep = ttk.Separator(
+            master=self.upper_container_right,
+            orient=HORIZONTAL
+        )
+        sep.pack(fill=BOTH, pady=10)
+
+        # Create credits label
+        credits_text = '''Criado por:
         
-        sep = ttk.Separator(master=self.upper_container_right, bootstyle=LIGHT)
-        sep.pack(fill=BOTH)
+            - Murillo Lucindo 
+            - Arthur Fary
 
-        credits_text = '''
-        Criado por:
+            SAPO:
 
-        - Murillo Lucindo 
-        - Arthur Fary
+            > Sistema
+            > Absolutamente
+            > Poderoso de
+            > Organização
+            
+            '''
 
-        SAPO:
+        credits_text = credits_text.replace('   ', '').strip('\n')
 
-        > Sistema
-        > Absolutamente
-        > Poderoso de
-        > Organização
-        '''.replace('   ', '').strip('\n')
         credits_lbl = ttk.Label(
-                    master=self.upper_container_right,
-                    text=credits_text,#'Criado por:\nMurilo Lucindo e Arthur Fary\n\nS.A.P.O:\n\nSistema\nAbsolutamente\nPoderoso de\nOrganização',
-                    anchor=W,
-                    bootstyle=SECONDARY,
-                    )
+            master=self.upper_container_right,
+            text=credits_text,
+            anchor=W,
+            style='secondary.TLabel',
+        )
         credits_lbl.pack(fill=BOTH, side=TOP)
 
-        sep = ttk.Separator(master=self.upper_container_right, bootstyle=LIGHT)
-        sep.pack(fill=BOTH)
+        # Create separator
+        sep = ttk.Separator(
+            master=self.upper_container_right,
+            orient=HORIZONTAL,
+        )
+        sep.pack(fill=BOTH, pady=10)
 
+        # Create credits label for MIT license and author
         credits_lbl = ttk.Label(
-                    master=self.upper_container_right,
-                    text='MIT License\n\nCopyright (c) 2022\nMurillo Lucindo Sanches',
-                    anchor=W,
-                    bootstyle=SECONDARY,
-                    font=('', 8)
-                    )
+            master=self.upper_container_right,
+            text='MIT License\n\n© 2022 Murillo Lucindo Sanches',
+            anchor=W,
+            style='secondary.TLabel',
+            font=('', 8)
+        )
         credits_lbl.pack(fill=BOTH, side=TOP, pady=(10))
 
     def create_inputs(self):
-        # FILTER INPUTS
+        # Cria frame para os inputs do filtro
         self.upper_container_left_above = ttk.Frame(master=self.upper_container_left)
         self.upper_container_left_above.pack(fill=X, expand=YES, side=TOP)
 
-        browse_filter = ttk.Button(master=self.upper_container_left_above, text="Selecionar Filtros", command=self.select_filters_path, width=17)
+        # Botão para selecionar o arquivo de filtro
+        browse_filter = ttk.Button(
+            master=self.upper_container_left_above, 
+            text="Selecionar Filtros", 
+            command=self.select_filters_path, 
+            width=17
+        )
         browse_filter.pack(side=LEFT, padx=(0,10), pady=(10,0))
 
-        file_filter_entry = ttk.Entry(master=self.upper_container_left_above, textvariable=self.filter_filename)
+        # Entrada para o caminho do arquivo de filtro
+        file_filter_entry = ttk.Entry(
+            master=self.upper_container_left_above, 
+            textvariable=self.filter_filename
+        )
         file_filter_entry.pack(side=LEFT, fill=BOTH, expand=YES, pady=(10,0))
 
-        column_filter_label = ttk.Label(master=self.upper_container_left_above, text="Coluna:")
+        # Label para seleção da coluna de filtro
+        column_filter_label = ttk.Label(
+            master=self.upper_container_left_above, 
+            text="Coluna:"
+        )
         column_filter_label.pack(side=LEFT, padx=(10), pady=(10,0))
 
-        self.column_filter_entry = ttk.Entry(master=self.upper_container_left_above, width=12)
+        # Entrada para seleção da coluna de filtro
+        self.column_filter_entry = ttk.Entry(
+            master=self.upper_container_left_above, 
+            width=12
+        )
         self.column_filter_entry.pack(side=RIGHT, pady=(10,0))
-        
-        # TABLE INPUTS
+
+        # Cria frame para os inputs da tabela
         self.upper_container_left_below = ttk.Frame(master=self.upper_container_left)
         self.upper_container_left_below.pack(fill=X, expand=YES, side=BOTTOM)
 
-        browse_table = ttk.Button(master=self.upper_container_left_below, text="Selecionar Planilha", command=self.select_table_path, width=17)
+        # Botão para selecionar o arquivo de tabela
+        browse_table = ttk.Button(
+            master=self.upper_container_left_below, 
+            text="Selecionar Planilha", 
+            command=self.select_table_path, 
+            width=17
+        )
         browse_table.pack(side=LEFT, padx=(0,10), pady=(10,0))
 
-        file_table_entry = ttk.Entry(master=self.upper_container_left_below, textvariable=self.table_filename)
+        # Entrada para o caminho do arquivo de tabela
+        file_table_entry = ttk.Entry(
+            master=self.upper_container_left_below, 
+            textvariable=self.table_filename
+        )
         file_table_entry.pack(side=LEFT, fill=X, expand=YES, pady=(10,0))
 
-        column_table_label = ttk.Label(master=self.upper_container_left_below, text="Coluna:")
+        # Label para seleção da coluna de tabela
+        column_table_label = ttk.Label(
+            master=self.upper_container_left_below, 
+            text="Coluna:"
+        )
         column_table_label.pack(side=LEFT, padx=(10), pady=(10,0))
 
-        self.column_table_entry = ttk.Entry(master=self.upper_container_left_below, width=12)
+        # Entrada para seleção da coluna de tabela
+        self.column_table_entry = ttk.Entry(
+            master=self.upper_container_left_below, 
+            width=12
+        )
         self.column_table_entry.pack(side=RIGHT, pady=(10,0))
 
     def select_table_path(self):

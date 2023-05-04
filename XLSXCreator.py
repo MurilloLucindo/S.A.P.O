@@ -60,23 +60,43 @@ class XLSXCreator:
         return True
 
     def __filter_and_create(self, table_code):
+        # Verifica se a tabela está na lista de códigos
         if table_code in self.lista_de_codes:
+            # Se estiver, cria a planilha correspondente
             if self.ttkobject:
-                self.ttkobject.log_print(f'Criando planilha para {table_code}: {self.id_nome_dict[table_code]}...')
+                # Imprime mensagem de log
+                message = f'Criando planilha para {table_code}: {self.id_nome_dict[table_code]}...'
+                self.ttkobject.log_print(message)
+            
+            # Seleciona o conteúdo da tabela específica
             conteudo_code = self.tabela_ids.loc[self.tabela_ids[self.tabela_ids_col] == table_code]
+            # Cria uma cópia do conteúdo selecionado
             planilha_resultado = conteudo_code.copy()
+            
+            # Define o nome e o caminho do arquivo da planilha
             filename = f'{table_code}_{self.id_nome_dict[table_code]}.xlsx'
             path = os.path.join(self.output_folder, filename)
+            # Salva a planilha no arquivo especificado
             planilha_resultado.to_excel(path, index=False, float_format="%.0f")
+            
+        # Se a tabela não estiver na lista de códigos
         else:
             if self.ttkobject:
-                self.ttkobject.log_print(f'{table_code}, {self.id_nome_dict[table_code]} não está nos filtros. Adicionando aos restantes... ')
+                # Imprime mensagem de log
+                message = f'{table_code} não está nos filtros. Adicionando aos restantes... '
+                self.ttkobject.log_print(message)
+            
+            # Seleciona o conteúdo da tabela específica
             conteudo_code = self.tabela_ids.loc[self.tabela_ids[self.tabela_ids_col] == table_code]
+            
+            # Aquisição do semáforo antes da operação crítica
             self.semaphore.acquire()
             try:
-                self.planilha_resto = self.planilha_resto.append(conteudo_code, ignore_index=True)
+                self.planilha_resto = self.planilha_resto._append(conteudo_code, ignore_index=True)
             finally:
+                # Liberação do semáforo após a operação crítica
                 self.semaphore.release()
+
 
     def set_tabela_ids_path(self, path: str):
         self.tabela_ids_path = path
@@ -99,7 +119,7 @@ class XLSXCreator:
             # Checa se a pasta de output existe
             if not os.path.exists(self.output_folder):
                 os.mkdir(self.output_folder)
-            
+
             for table_code in self.table_codes:
                 t = threading.Thread(target=self.__filter_and_create, args=(table_code,))
                 self.threads.append(t)
