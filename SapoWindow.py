@@ -16,7 +16,9 @@ class SapoWindow(ttk.Frame):
         self.filter_filename = ttk.StringVar()
         self.column_filter_entry = None
         self.table_filename = ttk.StringVar()
-        self.column_table_entry = None
+        self.column_table_entry = ttk.StringVar()
+        
+       
 
         # images
         self.forg = ImageTk.PhotoImage(Image.open('assets/forg.png'))
@@ -45,6 +47,7 @@ class SapoWindow(ttk.Frame):
 
         # inputs
         self.create_inputs()
+
 
         # xlsx stuff
         self.sapo = XLSXCreator(ttkobject=self)
@@ -188,7 +191,7 @@ class SapoWindow(ttk.Frame):
         browse_table = ttk.Button(
             master=self.upper_container_left_below, 
             text="Selecionar Planilha", 
-            command=self.select_table_path, 
+            command=self.debug_print, 
             width=17
         )
         browse_table.pack(side=LEFT, padx=(0,10), pady=(10,0))
@@ -200,25 +203,35 @@ class SapoWindow(ttk.Frame):
         )
         file_table_entry.pack(side=LEFT, fill=X, expand=YES, pady=(10,0))
 
-        # Label para seleção da coluna de tabela
-        column_table_label = ttk.Label(
-            master=self.upper_container_left_below, 
-            text="Coluna:"
-        )
-        column_table_label.pack(side=LEFT, padx=(10), pady=(10,0))
 
-        # Entrada para seleção da coluna de tabela
-        self.column_table_entry = ttk.Entry(
-            master=self.upper_container_left_below, 
-            width=12
-        )
-        self.column_table_entry.pack(side=RIGHT, pady=(10,0))
+
+        # Menu seletor pra coluna
+        menu_button = ttk.Menubutton(master=self.upper_container_left_below, text='Coluna') #width=11) <-- usa se quiser manter tamanho fixo
+        menu = ttk.Menu(menu_button)
+
+        def select_option(option):
+            self.column_table_entry.set(option)
+            menu_button.config(text=self.column_table_entry.get())
+
+        for option in ['UID,C,7', 'BPI_UID,C,7']:
+            menu.add_radiobutton(
+                label=option,
+                value=option,
+                variable=self.column_table_entry,
+                command=lambda option=option: select_option(option)
+            )
+        menu_button['menu'] = menu
+        menu_button.pack(side=RIGHT, pady=(10,0), padx=(10,0))
 
     def select_table_path(self):
         self.table_filename.set(askopenfilename(parent=self, title="Selecione a tabela", filetypes=[("Excel files", "*.xlsx")]))
 
     def select_filters_path(self):
         self.filter_filename.set(askopenfilename(parent=self, title="Selecione a tabela com os filtros", filetypes=[("Excel files", "*.xlsx")])) 
+
+    # chama essa funcao se quiser testar um botao, tipo Botao(command=debug_print)
+    def debug_print(self):
+        print(self.column_table_entry.get())
 
     def start(self):
         if not self.filter_filename.get():
