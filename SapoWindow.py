@@ -5,6 +5,12 @@ from tkinter.scrolledtext import ScrolledText
 from PIL import Image, ImageTk
 import threading
 
+import base64
+from io import BytesIO
+
+from assets.pic2str import forg
+
+
 from XLSXCreator import XLSXCreator
 
 class SapoWindow(ttk.Frame):
@@ -14,14 +20,19 @@ class SapoWindow(ttk.Frame):
 
         # ttk variables
         self.filter_filename = ttk.StringVar()
-        self.column_filter_entry = None
+        self.column_filter_entry = "CODES"
         self.table_filename = ttk.StringVar()
         self.column_table_entry = ttk.StringVar()
         
        
 
         # images
-        self.forg = ImageTk.PhotoImage(Image.open('assets/forg.png'))
+        byte_data = base64.b64decode(forg)
+        image_data = BytesIO(byte_data)
+        image = Image.open(image_data)
+        self.forg = ImageTk.PhotoImage(image)
+
+        master.iconphoto(False, self.forg)
 
         # styles
         self.style = ttk.Style()
@@ -141,7 +152,7 @@ class SapoWindow(ttk.Frame):
         # Create credits label for MIT license and author
         credits_lbl = ttk.Label(
             master=self.upper_container_right,
-            text='MIT License\n\n© 2022 Murillo Lucindo Sanches',
+            text='MIT License\n\n© 2023 Murillo Lucindo Sanches',
             anchor=W,
             style='secondary.TLabel',
             font=('', 8)
@@ -172,16 +183,10 @@ class SapoWindow(ttk.Frame):
         # Label para seleção da coluna de filtro
         column_filter_label = ttk.Label(
             master=self.upper_container_left_above, 
-            text="Coluna:"
+            text="Coluna: CODES"
         )
         column_filter_label.pack(side=LEFT, padx=(10), pady=(10,0))
 
-        # Entrada para seleção da coluna de filtro
-        self.column_filter_entry = ttk.Entry(
-            master=self.upper_container_left_above, 
-            width=12
-        )
-        self.column_filter_entry.pack(side=RIGHT, pady=(10,0))
 
         # Cria frame para os inputs da tabela
         self.upper_container_left_below = ttk.Frame(master=self.upper_container_left)
@@ -191,7 +196,7 @@ class SapoWindow(ttk.Frame):
         browse_table = ttk.Button(
             master=self.upper_container_left_below, 
             text="Selecionar Planilha", 
-            command=self.debug_print, 
+            command=self.select_table_path, 
             width=17
         )
         browse_table.pack(side=LEFT, padx=(0,10), pady=(10,0))
@@ -224,10 +229,10 @@ class SapoWindow(ttk.Frame):
         menu_button.pack(side=RIGHT, pady=(10,0), padx=(10,0))
 
     def select_table_path(self):
-        self.table_filename.set(askopenfilename(parent=self, title="Selecione a tabela", filetypes=[("Excel files", "*.xlsx")]))
+        self.table_filename.set(askopenfilename(parent=self, initialdir='./', title="Selecione a tabela", filetypes=[("Excel files", "*.xlsx")]))
 
     def select_filters_path(self):
-        self.filter_filename.set(askopenfilename(parent=self, title="Selecione a tabela com os filtros", filetypes=[("Excel files", "*.xlsx")])) 
+        self.filter_filename.set(askopenfilename(parent=self, initialdir='./', title="Selecione a tabela com os filtros", filetypes=[("Excel files", "*.xlsx")])) 
 
     # chama essa funcao se quiser testar um botao, tipo Botao(command=debug_print)
     def debug_print(self):
@@ -237,8 +242,8 @@ class SapoWindow(ttk.Frame):
         if not self.filter_filename.get():
             self.log_print('Filtros não selecionados.')
 
-        elif not self.column_filter_entry.get():
-            self.log_print('Coluna de filtros não selecionada.')
+        #elif not self.column_filter_entry.get():
+            #self.log_print('Coluna de filtros não selecionada.')
 
         elif not self.table_filename.get():
             self.log_print('Tabela não selecionada.')
@@ -250,7 +255,7 @@ class SapoWindow(ttk.Frame):
             self.log_print('Iniciando...')
 
             self.sapo.set_tabela_filtro_path(self.filter_filename.get())
-            self.sapo.set_tabela_filtro_col(self.column_filter_entry.get())
+            self.sapo.set_tabela_filtro_col(self.column_filter_entry)#self.column_filter_entry.get())
             self.sapo.set_tabela_ids_path(self.table_filename.get())
             self.sapo.set_tabela_ids_col(self.column_table_entry.get())
 
